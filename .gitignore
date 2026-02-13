@@ -37,3 +37,4 @@ yarn-error.log*
 
 # Misc
 *.tsbuildinfo
+contracts/lib/

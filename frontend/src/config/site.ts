@@ -1,4 +1,5 @@
 export const siteConfig = {
-  name: "My App",
-  description: "A web3 application.",
+  name: "AsiaLink",
+  description:
+    "Send money home for less. Save in USD. Powered by Etherlink.",
 } as const;

@@ -2,12 +2,15 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-solc = "0.8.26"
-evm_version = "cancun"
+solc = "0.8.24"
+evm_version = "shanghai"
+optimizer = true
+optimizer_runs = 800
+via_ir = true
 
 [rpc_endpoints]
-mainnet = "${RPC_URL}"
-sepolia = "${SEPOLIA_RPC_URL}"
+etherlink = "https://node.mainnet.etherlink.com"
+etherlink_testnet = "https://node.shadownet.etherlink.com"
 
 [etherscan]
-mainnet = { key = "${ETHERSCAN_API_KEY}" }
+etherlink = { key = "${ETHERSCAN_API_KEY}", url = "https://explorer.etherlink.com/api" }
