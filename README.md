@@ -2,7 +2,7 @@
 
 **Send money home for less. Save in USD.** Asia's remittance and DeFi savings app built on Etherlink.
 
-**Live demo:** [asialink-app.vercel.app](https://mantle-mpass.vercel.app)
+**Live demo:** [asialink-gold.vercel.app](https://asialink-gold.vercel.app)
 
 ## The Problem
 
