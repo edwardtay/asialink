@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { createPublicClient, http } from "viem";
 import { Navbar } from "@/components/navbar";
 import { TransactionSuccess } from "@/components/transaction-success";
 import {
@@ -80,13 +81,29 @@ export default function SavingsPage() {
     chainId: targetChain,
   });
 
-  const { data: totalAssets } = useContractRead<bigint>({
+  const { data: totalAssetsWagmi } = useContractRead<bigint>({
     address: CONTRACTS.vault,
     abi: VAULT_ABI,
     functionName: "totalAssets",
     args: [],
     chainId: targetChain,
   });
+
+  // Direct viem fallback for TVL — works without wallet connection
+  const [totalAssetsDirect, setTotalAssetsDirect] = useState<bigint | undefined>();
+  useEffect(() => {
+    const client = createPublicClient({
+      chain: etherlinkTestnet,
+      transport: http("https://node.shadownet.etherlink.com"),
+    });
+    client.readContract({
+      address: CONTRACTS.vault,
+      abi: VAULT_ABI,
+      functionName: "totalAssets",
+    }).then((v) => setTotalAssetsDirect(v as bigint)).catch(() => {});
+  }, []);
+
+  const totalAssets = totalAssetsWagmi ?? totalAssetsDirect;
 
   const { data: allowance, refetch: refetchAllowance } = useContractRead<bigint>({
     address: CONTRACTS.usdc,

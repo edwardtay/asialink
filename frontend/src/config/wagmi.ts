@@ -45,7 +45,7 @@ export const config = getDefaultConfig({
   ssr: true,
   storage: createStorage({ storage: cookieStorage }),
   transports: {
-    [etherlink.id]: http(),
-    [etherlinkTestnet.id]: http(),
+    [etherlink.id]: http("https://node.mainnet.etherlink.com"),
+    [etherlinkTestnet.id]: http("https://node.shadownet.etherlink.com"),
   },
 });

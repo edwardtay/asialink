@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAccount } from "wagmi";
+import { createPublicClient, http } from "viem";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -334,13 +335,29 @@ export default function Dashboard() {
     chainId: targetChain,
   });
 
-  const { data: totalAssets } = useContractRead<bigint>({
+  const { data: totalAssetsWagmi } = useContractRead<bigint>({
     address: CONTRACTS.vault,
     abi: VAULT_ABI,
     functionName: "totalAssets",
     args: [],
     chainId: targetChain,
   });
+
+  // Direct viem fallback for TVL — works without wallet connection
+  const [totalAssetsDirect, setTotalAssetsDirect] = useState<bigint | undefined>();
+  useEffect(() => {
+    const client = createPublicClient({
+      chain: etherlinkTestnet,
+      transport: http("https://node.shadownet.etherlink.com"),
+    });
+    client.readContract({
+      address: CONTRACTS.vault,
+      abi: VAULT_ABI,
+      functionName: "totalAssets",
+    }).then((v) => setTotalAssetsDirect(v as bigint)).catch(() => {});
+  }, []);
+
+  const totalAssets = totalAssetsWagmi ?? totalAssetsDirect;
 
   const { data: usdcBalance } = useContractRead<bigint>({
     address: CONTRACTS.usdc,
@@ -361,13 +378,28 @@ export default function Dashboard() {
   });
 
   // Escrow deposit counter (no wallet needed)
-  const { data: depositCounter } = useContractRead<bigint>({
+  const { data: depositCounterWagmi } = useContractRead<bigint>({
     address: CONTRACTS.escrow,
     abi: ESCROW_ABI,
     functionName: "depositCounter",
     args: [],
     chainId: targetChain,
   });
+
+  const [depositCounterDirect, setDepositCounterDirect] = useState<bigint | undefined>();
+  useEffect(() => {
+    const client = createPublicClient({
+      chain: etherlinkTestnet,
+      transport: http("https://node.shadownet.etherlink.com"),
+    });
+    client.readContract({
+      address: CONTRACTS.escrow,
+      abi: ESCROW_ABI,
+      functionName: "depositCounter",
+    }).then((v) => setDepositCounterDirect(v as bigint)).catch(() => {});
+  }, []);
+
+  const depositCounter = depositCounterWagmi ?? depositCounterDirect;
 
   const primaryActions = [
     {
@@ -501,7 +533,7 @@ export default function Dashboard() {
                 />
                 <StatCard
                   label="Protocol TVL"
-                  value={`$${formatUSDC(totalAssets ?? 20000000000n)}`}
+                  value={`$${formatUSDC(totalAssets)}`}
                   icon={Globe}
                   delay="stagger-3"
                 />
@@ -510,13 +542,13 @@ export default function Dashboard() {
               <>
                 <StatCard
                   label="Vault TVL"
-                  value={`$${formatUSDC(totalAssets ?? 20000000000n)}`}
+                  value={`$${formatUSDC(totalAssets)}`}
                   icon={Globe}
                   delay="stagger-1"
                 />
                 <StatCard
                   label="Active offers"
-                  value={String(Number(depositCounter ?? 5n))}
+                  value={depositCounter !== undefined ? String(Number(depositCounter)) : undefined}
                   change="P2P marketplace"
                   icon={ShoppingCart}
                   delay="stagger-2"
