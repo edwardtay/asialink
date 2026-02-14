@@ -178,7 +178,7 @@ export default function SavingsPage() {
             nextStep={
               isDeposit
                 ? { label: "View dashboard", href: "/", description: "Track your savings growth over time" }
-                : { label: "Sell USDC for fiat", href: "/sell", description: "Off-ramp your USDC back to fiat via P2P" }
+                : { label: "Cash out to fiat", href: "/receive?tab=cashout", description: "Off-ramp your USDC back to fiat via P2P" }
             }
             onDismiss={() => setSuccessState(null)}
           />

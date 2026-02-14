@@ -294,21 +294,21 @@ const secondaryActions = [
   {
     label: "Swap tokens",
     description: "Trade on Etherlink DEXs",
-    href: "/swap",
+    href: "/trade",
     icon: ArrowLeftRight,
     color: "bg-violet-50 text-violet-600",
   },
   {
     label: "Bridge assets",
     description: "Move assets to/from Etherlink",
-    href: "/bridge",
+    href: "/trade?tab=bridge",
     icon: Layers,
     color: "bg-sky-50 text-sky-600",
   },
   {
     label: "Lend & borrow",
     description: "Supply or borrow on lending markets",
-    href: "/lend",
+    href: "/trade?tab=lend",
     icon: Landmark,
     color: "bg-orange-50 text-orange-600",
   },
@@ -372,7 +372,7 @@ export default function Dashboard() {
     {
       label: "Receive money",
       description: "On-ramp fiat via GCash, GrabPay, PayNow, or Wise",
-      href: "/buy",
+      href: "/receive",
       icon: ArrowDownLeft,
       color: "bg-emerald-50 text-emerald-600",
     },
@@ -560,13 +560,13 @@ export default function Dashboard() {
                       Receive USDC with local payment methods, or bridge assets from another chain to start saving and sending.
                     </p>
                     <div className="flex items-center gap-3">
-                      <Link href="/buy">
+                      <Link href="/receive">
                         <Button size="sm">
                           Receive USDC
                           <ChevronRight className="size-3.5 ml-1" />
                         </Button>
                       </Link>
-                      <Link href="/bridge">
+                      <Link href="/trade?tab=bridge">
                         <Button size="sm" variant="outline">
                           Bridge assets
                         </Button>
