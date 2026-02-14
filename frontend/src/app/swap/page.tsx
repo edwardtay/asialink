@@ -1,12 +1,16 @@
 "use client";
 
 import type { WidgetConfig } from "@lifi/widget";
-import { LiFiWidget, WidgetSkeleton } from "@lifi/widget";
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { Navbar } from "@/components/navbar";
-import { ClientOnly } from "@/components/client-only";
 import { lifiWidgetConfig } from "@/config/lifi-theme";
 import { Info, Zap } from "lucide-react";
+
+const LiFiWidget = dynamic(
+  () => import("@lifi/widget").then((mod) => mod.LiFiWidget),
+  { ssr: false, loading: () => <div className="h-[440px] rounded-2xl bg-card border border-border animate-pulse" /> }
+);
 
 export default function SwapPage() {
   const config: Partial<WidgetConfig> = useMemo(
@@ -36,16 +40,10 @@ export default function SwapPage() {
         </div>
 
         <div className="animate-fade-up stagger-1">
-          <ClientOnly
-            fallback={
-              <WidgetSkeleton config={config as WidgetConfig} />
-            }
-          >
-            <LiFiWidget
-              config={config as WidgetConfig}
-              integrator="asialink"
-            />
-          </ClientOnly>
+          <LiFiWidget
+            config={config as WidgetConfig}
+            integrator="asialink"
+          />
         </div>
 
         <div className="mt-6 pb-12 animate-fade-up stagger-3 space-y-3">
