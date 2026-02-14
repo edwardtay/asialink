@@ -4,6 +4,7 @@ import type { WidgetConfig } from "@lifi/widget";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { Navbar } from "@/components/navbar";
+import { WidgetErrorBoundary } from "@/components/widget-error-boundary";
 import { lifiWidgetConfig } from "@/config/lifi-theme";
 import {
   Card,
@@ -44,10 +45,15 @@ export default function BridgePage() {
         </div>
 
         <div className="animate-fade-up stagger-1">
-          <LiFiWidget
-            config={config as WidgetConfig}
-            integrator="asialink"
-          />
+          <WidgetErrorBoundary
+            fallbackUrl="https://jumper.exchange/?fromChain=1&toChain=42793"
+            fallbackLabel="Open Bridge on Jumper.exchange"
+          >
+            <LiFiWidget
+              config={config as WidgetConfig}
+              integrator="asialink"
+            />
+          </WidgetErrorBoundary>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mt-6 pb-12 animate-fade-up stagger-4">

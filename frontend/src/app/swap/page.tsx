@@ -4,6 +4,7 @@ import type { WidgetConfig } from "@lifi/widget";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { Navbar } from "@/components/navbar";
+import { WidgetErrorBoundary } from "@/components/widget-error-boundary";
 import { lifiWidgetConfig } from "@/config/lifi-theme";
 import { Info, Zap } from "lucide-react";
 
@@ -40,10 +41,15 @@ export default function SwapPage() {
         </div>
 
         <div className="animate-fade-up stagger-1">
-          <LiFiWidget
-            config={config as WidgetConfig}
-            integrator="asialink"
-          />
+          <WidgetErrorBoundary
+            fallbackUrl="https://jumper.exchange/?fromChain=42793&toChain=42793"
+            fallbackLabel="Open Swap on Jumper.exchange"
+          >
+            <LiFiWidget
+              config={config as WidgetConfig}
+              integrator="asialink"
+            />
+          </WidgetErrorBoundary>
         </div>
 
         <div className="mt-6 pb-12 animate-fade-up stagger-3 space-y-3">
