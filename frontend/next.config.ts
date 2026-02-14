@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const stub = "./src/stubs/mysten-sui.ts";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@lifi/widget", "@lifi/wallet-management"],
+  reactStrictMode: true,
   turbopack: {
     resolveAlias: {
       // Stub out Sui/wallet modules that @lifi/widget imports internally.
@@ -18,12 +17,8 @@ const nextConfig: NextConfig = {
     },
   },
   webpack: (config) => {
-    // Force all packages to use the same React instance
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      react: path.resolve("./node_modules/react"),
-      "react-dom": path.resolve("./node_modules/react-dom"),
-    };
+    config.resolve.fallback = { fs: false, net: false, tls: false };
+    config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
   },
 };

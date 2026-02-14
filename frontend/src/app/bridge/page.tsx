@@ -1,11 +1,11 @@
 "use client";
 
 import type { WidgetConfig } from "@lifi/widget";
-import dynamic from "next/dynamic";
+import { LiFiWidget, WidgetSkeleton } from "@lifi/widget";
 import { useMemo } from "react";
 import { Navbar } from "@/components/navbar";
+import { ClientOnly } from "@/components/client-only";
 import { WidgetErrorBoundary } from "@/components/widget-error-boundary";
-import { LiFiWidgetWrapper } from "@/components/lifi-widget-wrapper";
 import { lifiWidgetConfig } from "@/config/lifi-theme";
 import {
   Card,
@@ -13,13 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Layers, Shield, Zap } from "lucide-react";
 
-const LiFiWidget = dynamic(
-  () => import("@lifi/widget").then((mod) => mod.LiFiWidget),
-  { ssr: false, loading: () => <div className="h-[440px] rounded-2xl bg-card border border-border animate-pulse" /> }
-);
-
 export default function BridgePage() {
-  const config: Partial<WidgetConfig> = useMemo(
+  const config = useMemo(
     () => ({
       ...lifiWidgetConfig,
       subvariant: "split" as const,
@@ -28,7 +23,7 @@ export default function BridgePage() {
       toChain: 42793,
     }),
     []
-  );
+  ) as Partial<WidgetConfig>;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -50,12 +45,9 @@ export default function BridgePage() {
             fallbackUrl="https://jumper.exchange/?fromChain=1&toChain=42793"
             fallbackLabel="Open Bridge on Jumper.exchange"
           >
-            <LiFiWidgetWrapper>
-              <LiFiWidget
-                config={config as WidgetConfig}
-                integrator="asialink"
-              />
-            </LiFiWidgetWrapper>
+            <ClientOnly fallback={<WidgetSkeleton config={config} />}>
+              <LiFiWidget config={config} integrator="asialink" />
+            </ClientOnly>
           </WidgetErrorBoundary>
         </div>
 
