@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
+import createCache from "@emotion/cache";
+import { CacheProvider } from "@emotion/react";
+
+const emotionCache = createCache({ key: "lifi", prepend: true });
 
 interface Props {
   children: ReactNode;
@@ -12,8 +16,7 @@ export function LiFiWidgetWrapper({ children, fallback }: Props) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    // Delay mount to ensure all providers are fully initialized
-    const timer = setTimeout(() => setMounted(true), 100);
+    const timer = setTimeout(() => setMounted(true), 200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -44,5 +47,9 @@ export function LiFiWidgetWrapper({ children, fallback }: Props) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <CacheProvider value={emotionCache}>
+      {children}
+    </CacheProvider>
+  );
 }
