@@ -51,12 +51,15 @@ export default function SavingsPage() {
   const [validationError, setValidationError] = useState("");
   const apyRate = bestApy !== null ? bestApy / 100 : 0.03;
 
+  const targetChain = etherlinkTestnet.id;
+
   const { data: usdcBalance, refetch: refetchUsdc } = useContractRead<bigint>({
     address: CONTRACTS.usdc,
     abi: USDC_ABI,
     functionName: "balanceOf",
     args: [address],
     enabled: !!address,
+    chainId: targetChain,
   });
 
   const { data: vaultShares, refetch: refetchShares } = useContractRead<bigint>({
@@ -65,6 +68,7 @@ export default function SavingsPage() {
     functionName: "balanceOf",
     args: [address],
     enabled: !!address,
+    chainId: targetChain,
   });
 
   const { data: assetsValue, refetch: refetchAssets } = useContractRead<bigint>({
@@ -73,6 +77,7 @@ export default function SavingsPage() {
     functionName: "convertToAssets",
     args: [vaultShares ?? 0n],
     enabled: !!vaultShares,
+    chainId: targetChain,
   });
 
   const { data: totalAssets } = useContractRead<bigint>({
@@ -80,6 +85,7 @@ export default function SavingsPage() {
     abi: VAULT_ABI,
     functionName: "totalAssets",
     args: [],
+    chainId: targetChain,
   });
 
   const { data: allowance, refetch: refetchAllowance } = useContractRead<bigint>({
@@ -88,6 +94,7 @@ export default function SavingsPage() {
     functionName: "allowance",
     args: [address, CONTRACTS.vault],
     enabled: !!address,
+    chainId: targetChain,
   });
 
   const refetchAll = useCallback(() => {

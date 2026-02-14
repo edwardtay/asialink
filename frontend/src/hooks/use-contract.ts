@@ -24,18 +24,21 @@ export function useContractRead<T = unknown>({
   functionName,
   args = [],
   enabled = true,
+  chainId,
 }: {
   address: Address | undefined;
   abi: Abi;
   functionName: string;
   args?: unknown[];
   enabled?: boolean;
+  chainId?: number;
 }) {
   const result = useReadContract({
     address,
     abi,
     functionName,
     args,
+    chainId,
     query: { enabled: enabled && !!address },
   });
 

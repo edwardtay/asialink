@@ -17,6 +17,7 @@ import {
   ESCROW_ABI,
   formatUSDC,
 } from "@/config/contracts";
+import { etherlinkTestnet } from "@/config/wagmi";
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -322,12 +323,15 @@ export default function Dashboard() {
   const apyPercent = bestApy !== null ? `~${bestApy.toFixed(2)}%` : "~3.00%";
   const apySourceText = bestSource ?? "Superlend";
 
+  const targetChain = etherlinkTestnet.id;
+
   const { data: vaultBalance } = useContractRead<bigint>({
     address: CONTRACTS.vault,
     abi: VAULT_ABI,
     functionName: "balanceOf",
     args: [address],
     enabled: !!address,
+    chainId: targetChain,
   });
 
   const { data: totalAssets } = useContractRead<bigint>({
@@ -335,6 +339,7 @@ export default function Dashboard() {
     abi: VAULT_ABI,
     functionName: "totalAssets",
     args: [],
+    chainId: targetChain,
   });
 
   const { data: usdcBalance } = useContractRead<bigint>({
@@ -343,6 +348,7 @@ export default function Dashboard() {
     functionName: "balanceOf",
     args: [address],
     enabled: !!address,
+    chainId: targetChain,
   });
 
   const { data: assetsValue } = useContractRead<bigint>({
@@ -351,6 +357,7 @@ export default function Dashboard() {
     functionName: "convertToAssets",
     args: [vaultBalance ?? 0n],
     enabled: !!vaultBalance,
+    chainId: targetChain,
   });
 
   // Escrow deposit counter (no wallet needed)
@@ -359,6 +366,7 @@ export default function Dashboard() {
     abi: ESCROW_ABI,
     functionName: "depositCounter",
     args: [],
+    chainId: targetChain,
   });
 
   const primaryActions = [
