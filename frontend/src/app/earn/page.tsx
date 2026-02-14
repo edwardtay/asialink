@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { createPublicClient, http } from "viem";
 import { Navbar } from "@/components/navbar";
 import { TransactionSuccess } from "@/components/transaction-success";
 import {
@@ -89,18 +88,24 @@ export default function SavingsPage() {
     chainId: targetChain,
   });
 
-  // Direct viem fallback for TVL — works without wallet connection
+  // Direct RPC fallback for TVL — works without wallet connection
   const [totalAssetsDirect, setTotalAssetsDirect] = useState<bigint | undefined>();
   useEffect(() => {
-    const client = createPublicClient({
-      chain: etherlinkTestnet,
-      transport: http("https://node.shadownet.etherlink.com"),
-    });
-    client.readContract({
-      address: CONTRACTS.vault,
-      abi: VAULT_ABI,
-      functionName: "totalAssets",
-    }).then((v) => setTotalAssetsDirect(v as bigint)).catch(() => {});
+    fetch("https://node.shadownet.etherlink.com", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [{ to: CONTRACTS.vault, data: "0x01e1d114" }, "latest"],
+        id: 1,
+      }),
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.result) setTotalAssetsDirect(BigInt(json.result));
+      })
+      .catch(() => {});
   }, []);
 
   const totalAssets = totalAssetsWagmi ?? totalAssetsDirect;

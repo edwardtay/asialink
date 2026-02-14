@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAccount } from "wagmi";
-import { createPublicClient, http } from "viem";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -343,18 +342,24 @@ export default function Dashboard() {
     chainId: targetChain,
   });
 
-  // Direct viem fallback for TVL — works without wallet connection
+  // Direct RPC fallback for TVL — works without wallet connection
   const [totalAssetsDirect, setTotalAssetsDirect] = useState<bigint | undefined>();
   useEffect(() => {
-    const client = createPublicClient({
-      chain: etherlinkTestnet,
-      transport: http("https://node.shadownet.etherlink.com"),
-    });
-    client.readContract({
-      address: CONTRACTS.vault,
-      abi: VAULT_ABI,
-      functionName: "totalAssets",
-    }).then((v) => setTotalAssetsDirect(v as bigint)).catch(() => {});
+    fetch("https://node.shadownet.etherlink.com", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [{ to: CONTRACTS.vault, data: "0x01e1d114" }, "latest"],
+        id: 1,
+      }),
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.result) setTotalAssetsDirect(BigInt(json.result));
+      })
+      .catch(() => {});
   }, []);
 
   const totalAssets = totalAssetsWagmi ?? totalAssetsDirect;
@@ -388,15 +393,21 @@ export default function Dashboard() {
 
   const [depositCounterDirect, setDepositCounterDirect] = useState<bigint | undefined>();
   useEffect(() => {
-    const client = createPublicClient({
-      chain: etherlinkTestnet,
-      transport: http("https://node.shadownet.etherlink.com"),
-    });
-    client.readContract({
-      address: CONTRACTS.escrow,
-      abi: ESCROW_ABI,
-      functionName: "depositCounter",
-    }).then((v) => setDepositCounterDirect(v as bigint)).catch(() => {});
+    fetch("https://node.shadownet.etherlink.com", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [{ to: CONTRACTS.escrow, data: "0xecb3dc88" }, "latest"],
+        id: 2,
+      }),
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.result) setDepositCounterDirect(BigInt(json.result));
+      })
+      .catch(() => {});
   }, []);
 
   const depositCounter = depositCounterWagmi ?? depositCounterDirect;
