@@ -1,11 +1,12 @@
 import { type Address, parseAbi } from "viem";
 
-// Contract addresses — set after deployment
+// Contract addresses (Etherlink Shadownet, chain 127823)
+// Env vars override these defaults if set
 export const CONTRACTS = {
-  usdc: process.env.NEXT_PUBLIC_USDC_ADDRESS as Address | undefined,
-  vault: process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address | undefined,
-  escrow: process.env.NEXT_PUBLIC_ESCROW_ADDRESS as Address | undefined,
-  verifier: process.env.NEXT_PUBLIC_VERIFIER_ADDRESS as Address | undefined,
+  usdc: (process.env.NEXT_PUBLIC_USDC_ADDRESS || "0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F") as Address,
+  vault: (process.env.NEXT_PUBLIC_VAULT_ADDRESS || "0x674e8150f526eDFBAc93577b32A267aB39C1a920") as Address,
+  escrow: (process.env.NEXT_PUBLIC_ESCROW_ADDRESS || "0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2") as Address,
+  verifier: (process.env.NEXT_PUBLIC_VERIFIER_ADDRESS || "0xc60b9A9Cc250fE880493f33fF7106D9aCc386ef1") as Address,
 } as const;
 
 export const USDC_ABI = parseAbi([
