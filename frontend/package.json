@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@lifi/sdk": "^3.15.6",
     "@lifi/widget": "^3.40.8",
     "@radix-ui/react-dialog": "^1.1.14",
