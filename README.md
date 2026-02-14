@@ -36,7 +36,7 @@ User → Pay locally (GCash, GrabPay, PromptPay, Dana, PayNow)
    Send to family → Cash out locally
 ```
 
-**Frontend**: 8 pages — Send, Receive, Cash Out, Save, Swap, Bridge, Lend, Dashboard
+**Frontend**: 4 pages — Send, Receive (buy + cash out), Save, Trade (swap + bridge + lend)
 **Swap & Bridge**: LI.FI Widget aggregating Etherlink DEX liquidity and cross-chain routes
 **Yield Data**: Live APY from DeFiLlama across Etherlink lending markets
 
@@ -50,6 +50,23 @@ User → Pay locally (GCash, GrabPay, PromptPay, Dana, PayNow)
 | [MockVerifier](contracts/src/verifier/MockVerifier.sol) | Payment verification (Reclaim Protocol in production) |
 
 9/9 tests passing &nbsp;|&nbsp; Solidity 0.8.24 &nbsp;|&nbsp; OpenZeppelin v4.9.6
+
+### Deployed (Etherlink Shadownet — Chain 127823)
+
+| Contract | Address |
+|----------|---------|
+| MockUSDC | `0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F` |
+| StableNestVault | `0x674e8150f526eDFBAc93577b32A267aB39C1a920` |
+| IdleStrategy | `0x51D3987A408BC7c24c5CB440B20DeD5E25d39CF7` |
+| MockVerifier | `0xc60b9A9Cc250fE880493f33fF7106D9aCc386ef1` |
+| YieldEscrow | `0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2` |
+
+### Verified Transactions
+
+| Action | Tx Hash |
+|--------|---------|
+| Vault deposit (1000 USDC) | `0x3c546adef1c3cb5b23c2fc97f6b9897da665a33c3a3ae214387c9a584ea46b65` |
+| YieldEscrow P2P deposit (500 USDC → GCash) | `0x062916fbd3bb91c6e1952bdc261023c4a4d8e681d286e89a6edcf5875db54eef` |
 
 ## Why Etherlink
 
