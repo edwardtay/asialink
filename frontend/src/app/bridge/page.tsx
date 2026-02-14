@@ -1,34 +1,13 @@
 "use client";
 
-import type { WidgetConfig } from "@lifi/widget";
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
 import { Navbar } from "@/components/navbar";
-import { WidgetErrorBoundary } from "@/components/widget-error-boundary";
-import { lifiWidgetConfig } from "@/config/lifi-theme";
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
 import { Layers, Shield, Zap } from "lucide-react";
 
-const LiFiWidget = dynamic(
-  () => import("@lifi/widget").then((mod) => mod.LiFiWidget),
-  { ssr: false, loading: () => <div className="h-[440px] rounded-2xl bg-card border border-border animate-pulse" /> }
-);
-
 export default function BridgePage() {
-  const config: Partial<WidgetConfig> = useMemo(
-    () => ({
-      ...lifiWidgetConfig,
-      subvariant: "split" as const,
-      subvariantOptions: { split: "bridge" as const },
-      fromChain: 1,
-      toChain: 42793,
-    }),
-    []
-  );
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -45,15 +24,14 @@ export default function BridgePage() {
         </div>
 
         <div className="animate-fade-up stagger-1">
-          <WidgetErrorBoundary
-            fallbackUrl="https://jumper.exchange/?fromChain=1&toChain=42793"
-            fallbackLabel="Open Bridge on Jumper.exchange"
-          >
-            <LiFiWidget
-              config={config as WidgetConfig}
-              integrator="asialink"
-            />
-          </WidgetErrorBoundary>
+          <iframe
+            src="https://jumper.exchange/widget?fromChain=1&toChain=42793&theme=light"
+            width="100%"
+            height="680"
+            className="rounded-2xl border border-border bg-card"
+            style={{ border: "none" }}
+            allow="clipboard-write"
+          />
         </div>
 
         <div className="grid grid-cols-3 gap-3 mt-6 pb-12 animate-fade-up stagger-4">

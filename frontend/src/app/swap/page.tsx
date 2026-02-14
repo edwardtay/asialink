@@ -1,30 +1,9 @@
 "use client";
 
-import type { WidgetConfig } from "@lifi/widget";
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
 import { Navbar } from "@/components/navbar";
-import { WidgetErrorBoundary } from "@/components/widget-error-boundary";
-import { lifiWidgetConfig } from "@/config/lifi-theme";
 import { Info, Zap } from "lucide-react";
 
-const LiFiWidget = dynamic(
-  () => import("@lifi/widget").then((mod) => mod.LiFiWidget),
-  { ssr: false, loading: () => <div className="h-[440px] rounded-2xl bg-card border border-border animate-pulse" /> }
-);
-
 export default function SwapPage() {
-  const config: Partial<WidgetConfig> = useMemo(
-    () => ({
-      ...lifiWidgetConfig,
-      subvariant: "split" as const,
-      subvariantOptions: { split: "swap" as const },
-      fromChain: 42793,
-      toChain: 42793,
-    }),
-    []
-  );
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -41,15 +20,14 @@ export default function SwapPage() {
         </div>
 
         <div className="animate-fade-up stagger-1">
-          <WidgetErrorBoundary
-            fallbackUrl="https://jumper.exchange/?fromChain=42793&toChain=42793"
-            fallbackLabel="Open Swap on Jumper.exchange"
-          >
-            <LiFiWidget
-              config={config as WidgetConfig}
-              integrator="asialink"
-            />
-          </WidgetErrorBoundary>
+          <iframe
+            src="https://jumper.exchange/widget?fromChain=42793&toChain=42793&theme=light"
+            width="100%"
+            height="680"
+            className="rounded-2xl border border-border bg-card"
+            style={{ border: "none" }}
+            allow="clipboard-write"
+          />
         </div>
 
         <div className="mt-6 pb-12 animate-fade-up stagger-3 space-y-3">
