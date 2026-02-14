@@ -65,11 +65,13 @@ forge script script/Deploy.s.sol --root contracts --rpc-url https://node.ghostne
 - Payment verification is pluggable: MockVerifier for dev, ReclaimVerifier for production
 - Asian payment methods first (GCash, GrabPay, PromptPay, Dana, OVO, PayNow) — matches APAC target market
 
-## Deployed Contracts (Etherlink Testnet)
+## Contract Deployment
 
-```
-MockUSDC:         0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F
-StableNestVault:  0x674e8150f526eDFBAc93577b32A267aB39C1a920
-YieldEscrow:      0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2
-MockVerifier:     0xA2A830924166af7Fe6B6b8A9E37Cce3D9F96FC37
+Deploy to Etherlink Shadownet testnet (needs XTZ for gas):
+```bash
+# Get testnet XTZ from https://shadownet.faucet.etherlink.com
+forge script script/Deploy.s.sol --root contracts --rpc-url https://node.shadownet.etherlink.com --broadcast
+
+# Seed test data (5 P2P escrow deposits with APAC payment methods)
+forge script script/SeedMarketplace.s.sol --root contracts --rpc-url https://node.shadownet.etherlink.com --broadcast
 ```

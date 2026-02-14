@@ -58,14 +58,16 @@ AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD 
 | `/lend` | Lending markets (live DeFiLlama yield data) | Live |
 | `/sell` | Cash out USDC to local currency via P2P | Live |
 
-### Smart Contracts (Etherlink Shadownet Testnet)
+### Smart Contracts
 
-| Contract | Address | Purpose |
-|----------|---------|---------|
-| MockUSDC | [`0x3D10...651F`](https://testnet.explorer.etherlink.com/address/0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F) | Test USDC token |
-| StableNestVault | [`0x674e...9F20`](https://testnet.explorer.etherlink.com/address/0x674e8150f526eDFBAc93577b32A267aB39C1a920) | ERC-4626 yield vault |
-| YieldEscrow | [`0x9510...4d2`](https://testnet.explorer.etherlink.com/address/0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2) | P2P escrow with yield routing |
-| MockVerifier | [`0xA2A8...C37`](https://testnet.explorer.etherlink.com/address/0xA2A830924166af7Fe6B6b8A9E37Cce3D9F96FC37) | Payment verification (mock for testnet, pluggable for production) |
+| Contract | Source | Purpose |
+|----------|--------|---------|
+| YieldEscrow | [`src/core/YieldEscrow.sol`](contracts/src/core/YieldEscrow.sol) | P2P escrow with yield routing (the novel piece) |
+| StableNestVault | [`src/vault/StableNestVault.sol`](contracts/src/vault/StableNestVault.sol) | ERC-4626 multi-strategy yield aggregator |
+| BaseStrategy | [`src/vault/strategies/BaseStrategy.sol`](contracts/src/vault/strategies/BaseStrategy.sol) | Pluggable strategy adapter |
+| MockVerifier | [`src/verifier/MockVerifier.sol`](contracts/src/verifier/MockVerifier.sol) | Payment verification (mock for testnet, Reclaim Protocol for production) |
+
+**Tests:** 9/9 passing (`forge test -v`)
 
 ## Etherlink Integration
 
