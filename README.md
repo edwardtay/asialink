@@ -12,13 +12,13 @@ Meanwhile, their savings sit in local bank accounts earning 0.1-1% APY, steadily
 
 ## The Solution
 
-AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD savings earning ~4% APY**, all accessible through familiar payment methods like GCash, GrabPay, PromptPay, and PayNow.
+AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD savings via an ERC-4626 vault**, all accessible through familiar payment methods like GCash, GrabPay, PromptPay, and PayNow.
 
 ### How it works
 
 1. **Send** — Transfer USDC to family for $0.01 (vs $8-15 traditional). Sub-500ms finality on Etherlink.
 2. **Buy** — Receive USDC through P2P on-ramp. Pay with GCash, GrabPay, PromptPay, Dana, or PayNow.
-3. **Earn** — Deposit USDC into our ERC-4626 vault. Earn ~4% APY automatically (vs 0.1% in local banks).
+3. **Earn** — Deposit USDC into our ERC-4626 vault. Yield strategies pluggable (currently testnet with simulated yield).
 4. **Sell** — Cash out USDC to local currency through P2P off-ramp. Liquidity providers earn yield while waiting.
 
 ### What makes it different
@@ -40,7 +40,7 @@ AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD 
 │   YieldEscrow    │      StableNestVault (eUSDC)      │
 │   - P2P orders   │      - Multi-strategy yield       │
 │   - Yield routing│      - ERC-4626 standard          │
-│   - Payment      │      - Superlend / Gearbox        │
+│   - Payment      │      - Pluggable strategies        │
 │     verification │      - Auto-compound               │
 └──────────────────┴───────────────────────────────────┘
 ```
@@ -52,7 +52,7 @@ AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD 
 | `/` | Homepage with cost comparison, corridors, dashboard | Live |
 | `/send` | Send USDC to family (direct transfer) | Live |
 | `/buy` | Buy USDC via P2P (pay with local payment apps) | Live |
-| `/earn` | Save in USD (ERC-4626 vault, ~4% APY) | Live |
+| `/earn` | Save in USD (ERC-4626 vault) | Live |
 | `/swap` | Token swap (LI.FI aggregated DEX liquidity) | Live |
 | `/bridge` | Cross-chain bridge (LI.FI multi-chain routes) | Live |
 | `/lend` | Lending markets (live DeFiLlama yield data) | Live |
@@ -65,7 +65,7 @@ AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD 
 | MockUSDC | `0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F` | Test USDC token |
 | StableNestVault | `0x674e8150f526eDFBAc93577b32A267aB39C1a920` | ERC-4626 yield vault |
 | YieldEscrow | `0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2` | P2P escrow with yield routing |
-| MockVerifier | `0xA2A830924166af7Fe6B6b8A9E37Cce3D9F96FC37` | Payment verification |
+| MockVerifier | `0xA2A830924166af7Fe6B6b8A9E37Cce3D9F96FC37` | Payment verification (mock for testnet, pluggable for production) |
 
 ## Etherlink Integration
 
@@ -81,7 +81,7 @@ AsiaLink is built natively on Etherlink, leveraging its unique properties for re
 - **Swap**: Aggregated liquidity via LI.FI across Etherlink DEXs (Curve, IguanaDEX, Hanji)
 - **Bridge**: Cross-chain transfers from Ethereum, Arbitrum, Base, Optimism, Polygon via LI.FI
 - **Lend**: Live yield data from Superlend and Gearbox via DeFiLlama API
-- **Earn**: Custom ERC-4626 vault routing to Etherlink yield strategies
+- **Earn**: Custom ERC-4626 vault with pluggable strategy architecture (testnet uses IdleStrategy)
 
 ## Supported Payment Methods
 
@@ -115,10 +115,10 @@ cd contracts
 forge build
 forge test -v
 
-# Deploy to Etherlink testnet
-forge script script/Deploy.s.sol --rpc-url https://node.ghostnet.etherlink.com --broadcast
+# Deploy to Etherlink Shadownet testnet
+forge script script/Deploy.s.sol --rpc-url https://node.shadownet.etherlink.com --broadcast
 ```
 
 ## Why Etherlink for Remittance?
 
-Traditional remittance corridors in APAC charge 5-10% fees with 1-3 day settlement. Etherlink's sub-second finality and sub-cent fees make it the ideal chain for a stablecoin payments app targeting migrant workers. The growing DeFi ecosystem (Superlend, Gearbox, Curve) enables the yield-generating features that differentiate AsiaLink from simple transfer apps.
+Traditional remittance corridors in APAC charge 5-10% fees with 1-3 day settlement. Etherlink's sub-second finality and sub-cent fees make it the ideal chain for a stablecoin payments app targeting migrant workers. The growing DeFi ecosystem on Etherlink enables yield-generating features that differentiate AsiaLink from simple transfer apps. Our vault architecture is designed with pluggable strategies — ready to integrate protocols like Superlend, Gearbox, and Curve as they deploy on Etherlink.
