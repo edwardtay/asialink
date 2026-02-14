@@ -9,6 +9,7 @@ interface IYieldEscrow {
         bytes32 payeeDetails;
         bytes32 paymentMethod;
         bool acceptingIntents;
+        uint256 lockedAmount;
     }
 
     struct Intent {

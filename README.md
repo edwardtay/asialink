@@ -99,7 +99,7 @@ AsiaLink is built natively on Etherlink, leveraging its unique properties for re
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
 - **Contracts**: Solidity 0.8.24, Foundry, OpenZeppelin v4.9.6
 - **DeFi**: LI.FI SDK (swap + bridge), DeFiLlama API (yield data), ERC-4626 (vault standard)
-- **Chain**: Etherlink Mainnet (Chain ID 42793) + Testnet (Chain ID 128123)
+- **Chain**: Etherlink Mainnet (Chain ID 42793) + Shadownet Testnet (Chain ID 127823)
 - **Wallet**: RainbowKit + wagmi + viem
 
 ## Getting Started

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import { Navbar } from "@/components/navbar";
 import { TransactionSuccess } from "@/components/transaction-success";
@@ -22,6 +22,7 @@ import {
   formatUSDC,
   parseUSDC,
 } from "@/config/contracts";
+import { useBestUsdcYield } from "@/hooks/use-best-yield";
 import {
   Plus,
   TrendingUp,
@@ -174,14 +175,54 @@ function MyDepositCard({
   );
 }
 
+function SellDepositLoader({
+  id,
+  onLoaded,
+}: {
+  id: number;
+  onLoaded: (id: number, deposit: DepositInfo | null) => void;
+}) {
+  const { data } = useContractRead<
+    [Address, bigint, bigint, `0x${string}`, `0x${string}`, boolean]
+  >({
+    address: CONTRACTS.escrow,
+    abi: ESCROW_ABI,
+    functionName: "deposits",
+    args: [BigInt(id)],
+  });
+
+  const onLoadedRef = useRef(onLoaded);
+  onLoadedRef.current = onLoaded;
+
+  useEffect(() => {
+    if (!data) {
+      onLoadedRef.current(id, null);
+      return;
+    }
+    onLoadedRef.current(id, {
+      id,
+      depositor: data[0],
+      amount: data[1],
+      sharesInVault: data[2],
+      payeeDetails: data[3],
+      paymentMethod: data[4],
+      acceptingIntents: data[5],
+    });
+  }, [id, data]);
+
+  return null;
+}
+
 export default function SellPage() {
   const { address, isConnected } = useAccount();
+  const { bestApy, apyDisplay } = useBestUsdcYield();
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("GCash");
   const [payeeDetails, setPayeeDetails] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const apyRate = bestApy !== null ? bestApy / 100 : 0.03;
 
   const { data: accountDeposits, refetch: refetchDeposits } = useContractRead<bigint[]>({
     address: CONTRACTS.escrow,
@@ -214,28 +255,16 @@ export default function SellPage() {
   }, [refetchDeposits, refetchUsdc, refetchAllowance]);
 
   const depositIds = (accountDeposits ?? []).map(Number);
-  const depositDetails = depositIds.map((id) => {
-    const { data } = useContractRead<
-      [Address, bigint, bigint, `0x${string}`, `0x${string}`, boolean]
-    >({
-      address: CONTRACTS.escrow,
-      abi: ESCROW_ABI,
-      functionName: "deposits",
-      args: [BigInt(id)],
-    });
-    if (!data) return null;
-    return {
-      id,
-      depositor: data[0],
-      amount: data[1],
-      sharesInVault: data[2],
-      payeeDetails: data[3],
-      paymentMethod: data[4],
-      acceptingIntents: data[5],
-    } as DepositInfo;
-  });
+  const depositsMapRef = useRef<Map<number, DepositInfo | null>>(new Map());
+  const [myDeposits, setMyDeposits] = useState<DepositInfo[]>([]);
 
-  const myDeposits = depositDetails.filter((d): d is DepositInfo => d !== null);
+  const handleDepositLoaded = useCallback((id: number, deposit: DepositInfo | null) => {
+    depositsMapRef.current.set(id, deposit);
+    const valid = Array.from(depositsMapRef.current.values()).filter(
+      (d): d is DepositInfo => d !== null
+    );
+    setMyDeposits(valid);
+  }, []);
 
   const { write: approve, isPrompting: isApproving, isConfirming: isApproveConfirming } =
     useContractWrite({
@@ -318,6 +347,11 @@ export default function SellPage() {
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-6">
+        {/* Hidden loaders — each calls useContractRead safely as a component */}
+        {depositIds.map((id) => (
+          <SellDepositLoader key={id} id={id} onLoaded={handleDepositLoaded} />
+        ))}
+
         {/* Header */}
         <div className="pt-10 pb-8 flex items-end justify-between animate-fade-up">
           <div>
@@ -446,8 +480,8 @@ export default function SellPage() {
                       While you wait, you earn
                     </div>
                     <p className="text-2xl font-display text-success">
-                      ~${(parseFloat(amount || "0") * 0.04).toFixed(2)}
-                      <span className="text-sm text-success/70 ml-1">/year (target)</span>
+                      ~${(parseFloat(amount || "0") * apyRate).toFixed(2)}
+                      <span className="text-sm text-success/70 ml-1">/year ({apyDisplay} APY)</span>
                     </p>
                   </div>
                 )}
@@ -532,7 +566,7 @@ export default function SellPage() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
-                    { step: "01", title: "Deposit USDC", desc: "Create a deposit into the yield-bearing escrow. Your USDC earns ~4% APY while waiting.", icon: Plus, color: "bg-amber-50 text-amber-600" },
+                    { step: "01", title: "Deposit USDC", desc: `Create a deposit into the yield-bearing escrow. Your USDC earns ${apyDisplay} APY while waiting.`, icon: Plus, color: "bg-amber-50 text-amber-600" },
                     { step: "02", title: "Get matched", desc: "Buyers browse your offer and signal intent to purchase. You receive fiat via GCash, GrabPay, or other local apps.", icon: TrendingUp, color: "bg-emerald-50 text-emerald-600" },
                     { step: "03", title: "Confirm & release", desc: "Verify the fiat payment was received. USDC is released from escrow to the buyer.", icon: LogOut, color: "bg-blue-50 text-blue-600" },
                   ].map((item) => (

@@ -57,7 +57,8 @@ contract YieldEscrowTest is Test {
             uint256 shares,
             ,
             ,
-            bool accepting
+            bool accepting,
+
         ) = escrow.deposits(depositId);
 
         assertEq(depositor, lp);

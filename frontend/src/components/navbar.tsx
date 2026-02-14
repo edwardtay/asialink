@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { siteConfig } from "@/config/site";
@@ -27,13 +28,14 @@ export function Navbar() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/60">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
           <div className="flex items-center gap-10">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="size-7 rounded-lg bg-foreground flex items-center justify-center group-hover:scale-105 transition-transform">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-background">
-                  <path d="M7 1L12 4.5V9.5L7 13L2 9.5V4.5L7 1Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                  <circle cx="7" cy="7" r="2" fill="currentColor"/>
-                </svg>
-              </div>
+            <Link href="/" className="flex items-center gap-2 group">
+              <Image
+                src="/logo.png"
+                alt={siteConfig.name}
+                width={32}
+                height={32}
+                className="rounded-lg group-hover:scale-105 transition-transform"
+              />
               <span className="font-display text-lg tracking-tight">
                 {siteConfig.name}
               </span>

@@ -20,6 +20,7 @@ import {
   formatUSDC,
   parseUSDC,
 } from "@/config/contracts";
+import { useBestUsdcYield } from "@/hooks/use-best-yield";
 import {
   Send,
   ChevronRight,
@@ -70,6 +71,7 @@ function removeRecipient(address: string) {
 
 export default function SendPage() {
   const { address, isConnected } = useAccount();
+  const { apyDisplay } = useBestUsdcYield();
   const [recipient, setRecipient] = useState("");
   const [recipientLabel, setRecipientLabel] = useState("");
   const [amount, setAmount] = useState("");
@@ -175,7 +177,7 @@ export default function SendPage() {
               label: "Save your remaining USDC",
               href: "/earn",
               description:
-                "Deposit into the savings vault to earn ~4% APY while you wait",
+                `Deposit into the savings vault to earn ${apyDisplay} APY while you wait`,
             }}
             onDismiss={() => {
               setShowSuccess(false);

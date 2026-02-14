@@ -21,6 +21,7 @@ import {
   formatUSDC,
   parseUSDC,
 } from "@/config/contracts";
+import { useBestUsdcYield } from "@/hooks/use-best-yield";
 import {
   ArrowDown,
   ArrowUp,
@@ -37,10 +38,12 @@ type SuccessState = { type: Tab; amount: string } | null;
 
 export default function SavingsPage() {
   const { address, isConnected } = useAccount();
+  const { bestApy, apyDisplay, usdcPools } = useBestUsdcYield();
   const [tab, setTab] = useState<Tab>("deposit");
   const [amount, setAmount] = useState("");
   const [successState, setSuccessState] = useState<SuccessState>(null);
   const [validationError, setValidationError] = useState("");
+  const apyRate = bestApy !== null ? bestApy / 100 : 0.03;
 
   const { data: usdcBalance, refetch: refetchUsdc } = useContractRead<bigint>({
     address: CONTRACTS.usdc,
@@ -215,10 +218,10 @@ export default function SavingsPage() {
                 <div className="flex items-center gap-2 mt-3">
                   <div className="flex items-center gap-1 text-xs text-success font-medium bg-success/10 px-2 py-0.5 rounded-full">
                     <TrendingUp className="size-3" />
-                    ~4% APY
+                    {apyDisplay} APY
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    Target yield
+                    Live yield
                   </span>
                 </div>
               </CardContent>
@@ -255,7 +258,6 @@ export default function SavingsPage() {
                   {[
                     { label: "Total TVL", value: `$${formatUSDC(totalAssets)}` },
                     { label: "Token", value: "eUSDC" },
-                    { label: "Strategies", value: "Curve, Gearbox, Superlend" },
                     { label: "Withdraw fee", value: "None" },
                     { label: "Lock period", value: "None" },
                   ].map((row) => (
@@ -265,6 +267,26 @@ export default function SavingsPage() {
                     </div>
                   ))}
                 </div>
+                {/* Live yield breakdown */}
+                {usdcPools.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2.5">
+                      Live yields
+                    </p>
+                    <div className="space-y-2">
+                      {usdcPools.map((pool) => (
+                        <div key={pool.pool} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground capitalize">
+                            {pool.project.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                          </span>
+                          <span className="text-success font-medium">
+                            {pool.apy.toFixed(2)}% APY
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -368,9 +390,9 @@ export default function SavingsPage() {
                             <span className="font-medium">~{amount} eUSDC</span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Est. yearly yield</span>
+                            <span className="text-muted-foreground">Est. yearly yield ({apyDisplay})</span>
                             <span className="text-success font-medium">
-                              +${(parseFloat(amount || "0") * 0.04).toFixed(2)}
+                              +${(parseFloat(amount || "0") * apyRate).toFixed(2)}
                             </span>
                           </div>
                         </>

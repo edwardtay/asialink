@@ -46,6 +46,7 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
     error NotDepositor();
     error VerificationFailed();
     error AmountExceedsDeposit();
+    error InsufficientRedemption();
 
     constructor(
         IERC20 _usdc,
@@ -75,6 +76,7 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
         usdc.safeTransferFrom(msg.sender, address(this), _amount);
 
         // Route to vault for yield
+        usdc.safeApprove(address(vault), 0);
         usdc.safeApprove(address(vault), _amount);
         uint256 shares = vault.deposit(_amount, address(this));
 
@@ -84,7 +86,8 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
             sharesInVault: shares,
             payeeDetails: _payeeDetails,
             paymentMethod: _paymentMethod,
-            acceptingIntents: true
+            acceptingIntents: true,
+            lockedAmount: 0
         });
 
         accountDeposits[msg.sender].push(depositId);
@@ -99,6 +102,7 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
         if (_amount == 0) revert InvalidAmount();
 
         usdc.safeTransferFrom(msg.sender, address(this), _amount);
+        usdc.safeApprove(address(vault), 0);
         usdc.safeApprove(address(vault), _amount);
         uint256 shares = vault.deposit(_amount, address(this));
 
@@ -110,8 +114,7 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
         Deposit storage dep = deposits[_depositId];
         if (dep.depositor != msg.sender) revert NotDepositor();
 
-        uint256 locked = _getLockedAmount(_depositId);
-        uint256 withdrawable = dep.amount > locked ? dep.amount - locked : 0;
+        uint256 withdrawable = dep.amount > dep.lockedAmount ? dep.amount - dep.lockedAmount : 0;
         if (withdrawable == 0) revert InvalidAmount();
 
         uint256 sharesToRedeem = (dep.sharesInVault * withdrawable) / dep.amount;
@@ -149,8 +152,7 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
         if (dep.amount == 0) revert DepositNotFound();
         if (!dep.acceptingIntents) revert DepositNotAccepting();
 
-        uint256 locked = _getLockedAmount(_depositId);
-        if (_amount > dep.amount - locked) revert AmountExceedsDeposit();
+        if (_amount > dep.amount - dep.lockedAmount) revert AmountExceedsDeposit();
 
         intentHash = keccak256(
             abi.encodePacked(intentCounter++, _depositId, msg.sender, _amount, block.timestamp)
@@ -168,6 +170,7 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
         });
 
         depositIntentHashes[_depositId].push(intentHash);
+        dep.lockedAmount += _amount;
 
         emit IntentSignaled(intentHash, _depositId, msg.sender, _amount);
     }
@@ -195,9 +198,11 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
 
         uint256 sharesToRedeem = (dep.sharesInVault * intent.amount) / dep.amount;
         uint256 assetsReceived = vault.redeem(sharesToRedeem, address(this), address(this));
+        if (assetsReceived < intent.amount) revert InsufficientRedemption();
 
         dep.amount -= intent.amount;
         dep.sharesInVault -= sharesToRedeem;
+        dep.lockedAmount -= intent.amount;
         intent.fulfilled = true;
 
         uint256 fee = (intent.amount * protocolFeeBps) / BPS;
@@ -225,6 +230,9 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
         if (intent.buyer != msg.sender) revert NotIntentOwner();
         if (intent.fulfilled) revert IntentAlreadyFulfilled();
 
+        Deposit storage dep = deposits[intent.depositId];
+        dep.lockedAmount -= intent.amount;
+
         intent.fulfilled = true;
         intent.expiryTime = 0;
 
@@ -250,16 +258,6 @@ contract YieldEscrow is IYieldEscrow, ReentrancyGuard, Ownable, Pausable {
 
     function getAccountDeposits(address _account) external view returns (uint256[] memory) {
         return accountDeposits[_account];
-    }
-
-    function _getLockedAmount(uint256 _depositId) internal view returns (uint256 locked) {
-        bytes32[] storage hashes = depositIntentHashes[_depositId];
-        for (uint256 i = 0; i < hashes.length; i++) {
-            Intent storage intent = intents[hashes[i]];
-            if (!intent.fulfilled && block.timestamp <= intent.expiryTime) {
-                locked += intent.amount;
-            }
-        }
     }
 
     // ============================================================

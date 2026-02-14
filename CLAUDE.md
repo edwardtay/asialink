@@ -33,7 +33,7 @@ Contracts:
 ## Chain: Etherlink
 
 - Mainnet: Chain ID 42793, RPC https://node.mainnet.etherlink.com
-- Testnet: Chain ID 128123, RPC https://node.ghostnet.etherlink.com
+- Testnet (Shadownet): Chain ID 127823, RPC https://node.shadownet.etherlink.com
 - Solidity: 0.8.24, EVM: Shanghai
 - OpenZeppelin: v4.9.6 (no Cancun opcodes)
 

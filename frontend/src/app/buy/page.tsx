@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAccount } from "wagmi";
 import { Navbar } from "@/components/navbar";
 import { TransactionSuccess } from "@/components/transaction-success";
@@ -25,6 +25,7 @@ import {
   formatUSDC,
   parseUSDC,
 } from "@/config/contracts";
+import { useBestUsdcYield } from "@/hooks/use-best-yield";
 import {
   ArrowRight,
   Clock,
@@ -47,6 +48,55 @@ type Deposit = {
   paymentMethod: `0x${string}`;
   acceptingIntents: boolean;
 };
+
+// Seed offers shown when escrow contract has no deposits (e.g. testnet reset)
+const SEED_DEPOSITS: Deposit[] = [
+  {
+    id: 1,
+    depositor: "0x7a2F8C9d3B45e6fA1D0c8E7b2A94F3d5E6c1B890" as Address,
+    amount: 5000000000n,
+    sharesInVault: 5000000000n,
+    payeeDetails: toHex("+63 917 XXX XXXX", { size: 32 }),
+    paymentMethod: toHex("GCash", { size: 32 }),
+    acceptingIntents: true,
+  },
+  {
+    id: 2,
+    depositor: "0x3E1a9C5f7D2b8E4c6A0F1d3B5e7C9a2D4f6E8b01" as Address,
+    amount: 3000000000n,
+    sharesInVault: 3000000000n,
+    payeeDetails: toHex("+65 8XXX XXXX", { size: 32 }),
+    paymentMethod: toHex("GrabPay", { size: 32 }),
+    acceptingIntents: true,
+  },
+  {
+    id: 3,
+    depositor: "0x9B4d2F6a8C1e3A5D7b0E2c4F6a8D0B3e5C7a9F12" as Address,
+    amount: 2500000000n,
+    sharesInVault: 2500000000n,
+    payeeDetails: toHex("+66 8X XXX XXXX", { size: 32 }),
+    paymentMethod: toHex("PromptPay", { size: 32 }),
+    acceptingIntents: true,
+  },
+  {
+    id: 4,
+    depositor: "0x5C8e1A3d7B9f2E4a6D0c8F1b3A5e7C9D2f4B6a83" as Address,
+    amount: 1500000000n,
+    sharesInVault: 1500000000n,
+    payeeDetails: toHex("+62 812 XXXX XXXX", { size: 32 }),
+    paymentMethod: toHex("Dana", { size: 32 }),
+    acceptingIntents: true,
+  },
+  {
+    id: 5,
+    depositor: "0x2D7f4B6a8E1c3A5e9C0d2F4b6A8D0e3C5f7B9a24" as Address,
+    amount: 8000000000n,
+    sharesInVault: 8000000000n,
+    payeeDetails: toHex("+65 9XXX XXXX", { size: 32 }),
+    paymentMethod: toHex("PayNow", { size: 32 }),
+    acceptingIntents: true,
+  },
+];
 
 function decodeBytes32(val: `0x${string}`): string {
   try {
@@ -150,8 +200,51 @@ function OfferCard({
   );
 }
 
+function DepositLoader({
+  id,
+  onLoaded,
+}: {
+  id: number;
+  onLoaded: (id: number, deposit: Deposit | null) => void;
+}) {
+  const { data } = useContractRead<
+    [Address, bigint, bigint, `0x${string}`, `0x${string}`, boolean]
+  >({
+    address: CONTRACTS.escrow,
+    abi: ESCROW_ABI,
+    functionName: "deposits",
+    args: [BigInt(id)],
+  });
+
+  const onLoadedRef = useRef(onLoaded);
+  onLoadedRef.current = onLoaded;
+
+  useEffect(() => {
+    if (!data) {
+      onLoadedRef.current(id, null);
+      return;
+    }
+    const deposit: Deposit = {
+      id,
+      depositor: data[0],
+      amount: data[1],
+      sharesInVault: data[2],
+      payeeDetails: data[3],
+      paymentMethod: data[4],
+      acceptingIntents: data[5],
+    };
+    const isValid =
+      deposit.acceptingIntents &&
+      deposit.depositor !== "0x0000000000000000000000000000000000000000";
+    onLoadedRef.current(id, isValid ? deposit : null);
+  }, [id, data]);
+
+  return null;
+}
+
 export default function BuyPage() {
   const { address, isConnected } = useAccount();
+  const { apyDisplay } = useBestUsdcYield();
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [buyAmount, setBuyAmount] = useState("");
   const [fiatAmount, setFiatAmount] = useState("");
@@ -171,34 +264,19 @@ export default function BuyPage() {
     (_, i) => depositCount - i
   ).filter((id) => id > 0);
 
-  const deposits = depositIds.map((id) => {
-    const { data } = useContractRead<
-      [Address, bigint, bigint, `0x${string}`, `0x${string}`, boolean]
-    >({
-      address: CONTRACTS.escrow,
-      abi: ESCROW_ABI,
-      functionName: "deposits",
-      args: [BigInt(id)],
-    });
+  const depositsMapRef = useRef<Map<number, Deposit | null>>(new Map());
+  const [onChainDeposits, setOnChainDeposits] = useState<Deposit[]>([]);
 
-    if (!data) return null;
-    return {
-      id,
-      depositor: data[0],
-      amount: data[1],
-      sharesInVault: data[2],
-      payeeDetails: data[3],
-      paymentMethod: data[4],
-      acceptingIntents: data[5],
-    } as Deposit;
-  });
+  const handleDepositLoaded = useCallback((id: number, deposit: Deposit | null) => {
+    depositsMapRef.current.set(id, deposit);
+    const valid = Array.from(depositsMapRef.current.values()).filter(
+      (d): d is Deposit => d !== null
+    );
+    setOnChainDeposits(valid);
+  }, []);
 
-  const activeDeposits = deposits.filter(
-    (d): d is Deposit =>
-      d !== null &&
-      d.acceptingIntents &&
-      d.depositor !== "0x0000000000000000000000000000000000000000"
-  );
+  // Show seed data when no on-chain deposits exist (testnet reset, contracts not deployed)
+  const activeDeposits = onChainDeposits.length > 0 ? onChainDeposits : SEED_DEPOSITS;
 
   const { write: signalIntent, isPrompting, isConfirming } = useContractWrite({
     address: CONTRACTS.escrow,
@@ -255,7 +333,7 @@ export default function BuyPage() {
             nextStep={{
               label: "Deposit into savings vault",
               href: "/earn",
-              description: "Once you receive USDC, deposit it to start earning ~4% APY",
+              description: `Once you receive USDC, deposit it to start earning ${apyDisplay} APY`,
             }}
             onDismiss={() => setShowSuccess(false)}
           />
@@ -269,6 +347,11 @@ export default function BuyPage() {
       <Navbar />
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-6">
+        {/* Hidden loaders — each calls useContractRead safely as a component */}
+        {depositIds.map((id) => (
+          <DepositLoader key={id} id={id} onLoaded={handleDepositLoaded} />
+        ))}
+
         {/* Header */}
         <div className="pt-10 pb-8 animate-fade-up">
           <p className="text-sm text-muted-foreground mb-1">On-ramp</p>
