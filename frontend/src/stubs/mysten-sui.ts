@@ -2,6 +2,8 @@
 // LI.FI Widget imports these for Sui chain support, but we only use EVM (Etherlink).
 // Turbopack requires all imports to resolve, so we provide empty stubs.
 
+import { createContext } from "react";
+
 // @mysten/sui/client
 export const SuiClient = class {};
 export const getFullnodeUrl = () => "";
@@ -17,8 +19,9 @@ export const isValidSuiAddress = () => false;
 // @mysten/sui/transactions
 export const Transaction = class {};
 
-// @mysten/dapp-kit
-export const SuiClientContext = null;
+// @mysten/dapp-kit — SuiClientContext must be a real React context
+// so useContext(SuiClientContext) doesn't crash with _currentValue null
+export const SuiClientContext = createContext(null);
 export const createNetworkConfig = () => ({});
 export const SuiClientProvider = ({ children }: any) => children;
 export const WalletProvider = ({ children }: any) => children;
