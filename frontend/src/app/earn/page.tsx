@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { Navbar } from "@/components/navbar";
 import { TransactionSuccess } from "@/components/transaction-success";
 import {
@@ -31,13 +31,19 @@ import {
   ChevronRight,
   AlertCircle,
   Loader2,
+  Droplets,
+  AlertTriangle,
 } from "lucide-react";
+import { etherlinkTestnet } from "@/config/wagmi";
 
 type Tab = "deposit" | "withdraw";
 type SuccessState = { type: Tab; amount: string } | null;
 
 export default function SavingsPage() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+  const isWrongChain = isConnected && chainId !== etherlinkTestnet.id;
   const { bestApy, apyDisplay, usdcPools } = useBestUsdcYield();
   const [tab, setTab] = useState<Tab>("deposit");
   const [amount, setAmount] = useState("");
@@ -123,6 +129,15 @@ export default function SavingsPage() {
       },
     });
 
+  // Testnet faucet: mint 1000 USDC
+  const { write: mintUsdc, isPrompting: isMinting, isConfirming: isMintConfirming } =
+    useContractWrite({
+      address: CONTRACTS.usdc,
+      abi: USDC_ABI,
+      functionName: "mint",
+      onSuccess: refetchAll,
+    });
+
   const parsedAmount = parseUSDC(amount);
   const needsApproval = tab === "deposit" && (allowance ?? 0n) < parsedAmount;
   const isBusy = isApproving || isApproveConfirming || isDepositing || isDepositConfirming || isWithdrawing || isWithdrawConfirming;
@@ -199,6 +214,58 @@ export default function SavingsPage() {
             Earn
           </h1>
         </div>
+
+        {/* Wrong chain warning */}
+        {isWrongChain && (
+          <Card className="mb-6 border-amber-200 bg-amber-50/50 animate-fade-up">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-100">
+                  <AlertTriangle className="size-4 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Wrong network</p>
+                  <p className="text-xs text-muted-foreground">Contracts are deployed on Etherlink Shadownet testnet</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => switchChain({ chainId: etherlinkTestnet.id })}
+                >
+                  Switch network
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Testnet faucet */}
+        {isConnected && !isWrongChain && (usdcBalance === undefined || usdcBalance === 0n) && (assetsValue === undefined || assetsValue === 0n) && (
+          <Card className="mb-6 border-blue-200 bg-blue-50/50 animate-fade-up">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <Droplets className="size-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Get test USDC</p>
+                  <p className="text-xs text-muted-foreground">Mint 1,000 USDC on Etherlink Shadownet to try the vault</p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => mintUsdc({ args: [address, 1000_000_000n] })}
+                  disabled={isMinting || isMintConfirming}
+                >
+                  {isMinting || isMintConfirming ? (
+                    <><Loader2 className="size-3.5 animate-spin mr-1" /> Minting...</>
+                  ) : (
+                    <>Mint 1,000 USDC</>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pb-12">
           {/* Left: Stats + Info */}
@@ -403,18 +470,20 @@ export default function SavingsPage() {
                   {/* Action button */}
                   <Button
                     className="w-full h-12 text-base"
-                    onClick={handleAction}
-                    disabled={!isConnected || !parsedAmount || !!validationError || isBusy}
+                    onClick={isWrongChain ? () => switchChain({ chainId: etherlinkTestnet.id }) : handleAction}
+                    disabled={!isConnected || (!isWrongChain && (!parsedAmount || !!validationError || isBusy))}
                   >
                     {!isConnected
                       ? "Connect wallet to continue"
-                      : isBusy
-                        ? <><Loader2 className="size-4 animate-spin" /> Confirming...</>
-                        : tab === "deposit"
-                          ? needsApproval
-                            ? "Approve USDC"
-                            : "Deposit USDC"
-                          : "Withdraw USDC"}
+                      : isWrongChain
+                        ? "Switch to Etherlink Shadownet"
+                        : isBusy
+                          ? <><Loader2 className="size-4 animate-spin" /> Confirming...</>
+                          : tab === "deposit"
+                            ? needsApproval
+                              ? "Approve USDC"
+                              : "Deposit USDC"
+                            : "Withdraw USDC"}
                     {!isBusy && isConnected && parsedAmount > 0n && !validationError && (
                       <ChevronRight className="size-4 ml-1" />
                     )}

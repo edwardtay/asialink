@@ -14,6 +14,7 @@ export const USDC_ABI = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
   "function decimals() view returns (uint8)",
+  "function mint(address to, uint256 amount)",
 ]);
 
 export const VAULT_ABI = parseAbi([
