@@ -58,14 +58,14 @@ AsiaLink combines **near-zero fee remittances** ($0.01 per transfer) with **USD 
 | `/lend` | Lending markets (live DeFiLlama yield data) | Live |
 | `/sell` | Cash out USDC to local currency via P2P | Live |
 
-### Smart Contracts (Etherlink Testnet)
+### Smart Contracts (Etherlink Shadownet Testnet)
 
 | Contract | Address | Purpose |
 |----------|---------|---------|
-| MockUSDC | `0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F` | Test USDC token |
-| StableNestVault | `0x674e8150f526eDFBAc93577b32A267aB39C1a920` | ERC-4626 yield vault |
-| YieldEscrow | `0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2` | P2P escrow with yield routing |
-| MockVerifier | `0xA2A830924166af7Fe6B6b8A9E37Cce3D9F96FC37` | Payment verification (mock for testnet, pluggable for production) |
+| MockUSDC | [`0x3D10...651F`](https://testnet.explorer.etherlink.com/address/0x3D101003b1f7E1dFe6f4ee7d1b587f656c3a651F) | Test USDC token |
+| StableNestVault | [`0x674e...9F20`](https://testnet.explorer.etherlink.com/address/0x674e8150f526eDFBAc93577b32A267aB39C1a920) | ERC-4626 yield vault |
+| YieldEscrow | [`0x9510...4d2`](https://testnet.explorer.etherlink.com/address/0x9510952EeE3a75769Eeb25791e3b9D7E8Eb964d2) | P2P escrow with yield routing |
+| MockVerifier | [`0xA2A8...C37`](https://testnet.explorer.etherlink.com/address/0xA2A830924166af7Fe6B6b8A9E37Cce3D9F96FC37) | Payment verification (mock for testnet, pluggable for production) |
 
 ## Etherlink Integration
 
@@ -105,20 +105,31 @@ AsiaLink is built natively on Etherlink, leveraging its unique properties for re
 ## Getting Started
 
 ```bash
+git clone https://github.com/edwardtay/asialink.git
+cd asialink
+
 # Frontend
 cd frontend
+cp .env.example .env.local   # edit with your WalletConnect project ID
 pnpm install
-pnpm dev
+pnpm dev                     # http://localhost:3000
 
 # Contracts
-cd contracts
+cd ../contracts
 forge build
-forge test -v
+forge test -v                # 9 tests pass
 
 # Deploy to Etherlink Shadownet testnet
 forge script script/Deploy.s.sol --rpc-url https://node.shadownet.etherlink.com --broadcast
 ```
 
-## Why Etherlink for Remittance?
+### Environment Variables
 
-Traditional remittance corridors in APAC charge 5-10% fees with 1-3 day settlement. Etherlink's sub-second finality and sub-cent fees make it the ideal chain for a stablecoin payments app targeting migrant workers. The growing DeFi ecosystem on Etherlink enables yield-generating features that differentiate AsiaLink from simple transfer apps. Our vault architecture is designed with pluggable strategies — ready to integrate protocols like Superlend, Gearbox, and Curve as they deploy on Etherlink.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_WC_PROJECT_ID` | Optional | WalletConnect project ID (falls back to `demo`) |
+| `NEXT_PUBLIC_TESTNET_RPC` | Optional | Etherlink testnet RPC (defaults to Shadownet) |
+| `NEXT_PUBLIC_USDC_ADDRESS` | Optional | MockUSDC contract address |
+| `NEXT_PUBLIC_VAULT_ADDRESS` | Optional | StableNestVault contract address |
+| `NEXT_PUBLIC_ESCROW_ADDRESS` | Optional | YieldEscrow contract address |
+| `NEXT_PUBLIC_VERIFIER_ADDRESS` | Optional | MockVerifier contract address |
